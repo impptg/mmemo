@@ -1,0 +1,8 @@
+{
+  "version": "0.2.0",
+  "build": 2,
+  "sparkleVersion": "2.10.0",
+  "sparkleSHA256": "c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c",
+  "publicKey": "B+y8eD3EQwCstNHNfmM/AOBj23k6pR0kv81rTKRKHfI=",
+  "feedBaseURL": "https://impptg.github.io/mmemo/updates"
+}

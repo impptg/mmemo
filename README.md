@@ -50,6 +50,8 @@ DATABASE_URL=postgres://mmemo:local-testing-only@127.0.0.1:55432/mmemo ADMIN_TOK
 
 ## 部署与验收
 
+桌面端应用内更新与 GitHub Releases / Pages 发布流程见 [内部更新说明](docs/implementation/updates.md)。开发构建禁用正式更新；Apple 芯片内部发布版使用 Sparkle 签名校验，但当前没有 Apple 公证，首次安装需按系统提示处理。
+
 参见 [运维说明](docs/implementation/operations.md)、[验收记录](docs/implementation/acceptance.md)。生产入口使用 IP HTTPS；具体部署参数保存在本地私有配置与服务器 `/opt/mmemo/server.env`。
 
 AI 的 DeepSeek 强制工具调用沿用 `thinking: disabled`，避免模型协议冲突；此次迁移不改变模型配置语义。

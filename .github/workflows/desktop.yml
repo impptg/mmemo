@@ -1,0 +1,22 @@
+name: Desktop checks
+on:
+  push:
+    branches: [main, feat/sparkle-updates]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  desktop:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Apple silicon development app
+        run: ./run.sh --build
+      - name: Test draft persistence
+        run: |
+          swiftc apps/desktop/Store.swift tests/draft.swift -o /tmp/mmemo-draft-tests
+          /tmp/mmemo-draft-tests
+      - name: Test existing client models
+        run: node --test tests/model.test.cjs tests/hearts.test.cjs
+      - name: Validate release scripts
+        run: python3 -m py_compile scripts/build-desktop.py scripts/fetch-sparkle.py scripts/github-api.py scripts/release-desktop.py

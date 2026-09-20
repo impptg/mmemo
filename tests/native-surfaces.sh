@@ -91,5 +91,5 @@ Timer.scheduledTimer(withTimeInterval:0.2,repeats:true) { timer in
 app.run()
 ''')
 PY
-swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift "$work/main.swift" -o "$work/mmemo-native-check" -framework AppKit -framework WebKit
+swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift apps/desktop/Updates.swift "$work/main.swift" -o "$work/mmemo-native-check" -framework AppKit -framework WebKit
 "$work/mmemo-native-check" "$PWD/dist/mmemo.app/Contents/Resources"

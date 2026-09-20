@@ -83,6 +83,6 @@ Timer.scheduledTimer(withTimeInterval:0.1,repeats:true) { timer in
 app.run()
 ''')
 PY
-swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift "$work/main.swift" -o "$work/native-cloud" -framework AppKit -framework WebKit
+swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift apps/desktop/Updates.swift "$work/main.swift" -o "$work/native-cloud" -framework AppKit -framework WebKit
 "$work/native-cloud" "$PWD/dist/mmemo.app/Contents/Resources" user_pptg
 "$work/native-cloud" "$PWD/dist/mmemo.app/Contents/Resources" user_mm

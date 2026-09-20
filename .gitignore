@@ -13,6 +13,9 @@ artifacts/private/
 *.log
 __pycache__/
 *.pyc
+.build/
+*.p12
+*.p8
 
 # Desktop account credentials and server bootstrap input (never publish).
 server.json

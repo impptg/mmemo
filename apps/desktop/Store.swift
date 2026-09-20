@@ -1,5 +1,46 @@
 import Foundation
 
+/// A typed composer snapshot; never persist or restore executable HTML.
+enum ComposerDraft {
+    static func checked(_ value: Any) throws -> [String: Any] {
+        guard let draft = value as? [String: Any], draft["version"] as? Int == 1,
+              let parts = draft["parts"] as? [[String: String]], parts.count <= 4096 else {
+            throw NSError(domain: "mmemo.draft", code: 1)
+        }
+        var count = 0
+        for part in parts {
+            switch part["kind"] {
+            case "text":
+                guard let text = part["text"], Set(part.keys) == ["kind", "text"] else { throw NSError(domain: "mmemo.draft", code: 2) }
+                count += text.utf8.count
+            case "task":
+                guard let id = part["id"], !id.isEmpty, id.count <= 100,
+                      let title = part["title"], title.count <= 200,
+                      Set(part.keys) == ["kind", "id", "title"] else { throw NSError(domain: "mmemo.draft", code: 3) }
+                count += id.utf8.count + title.utf8.count
+            default: throw NSError(domain: "mmemo.draft", code: 4)
+            }
+        }
+        guard count <= 131072 else { throw NSError(domain: "mmemo.draft", code: 5) }
+        return ["version": 1, "parts": parts]
+    }
+
+    static func save(_ value: Any, directory: URL) throws {
+        let data = try JSONSerialization.data(withJSONObject: checked(value), options: [.sortedKeys])
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let file = directory.appendingPathComponent("composer-draft.json")
+        if (try? Data(contentsOf: file)) == data { return }
+        try data.write(to: file, options: [.atomic, .completeFileProtection])
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+    }
+
+    static func load(directory: URL) throws -> [String: Any] {
+        let file = directory.appendingPathComponent("composer-draft.json")
+        guard FileManager.default.fileExists(atPath: file.path) else { return ["version": 1, "parts": [[String: String]]()] }
+        return try checked(JSONSerialization.jsonObject(with: Data(contentsOf: file)))
+    }
+}
+
 struct CloudAccount: Codable, Equatable {
     let username: String
     let uid: String

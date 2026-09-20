@@ -11,7 +11,7 @@ s=Path('apps/desktop/main.swift').read_text()
 s=s.replace('app.run()',Path('tests/native-pair-agent.swift').read_text()+'\napp.run()')
 Path(sys.argv[1]).write_text(s)
 PY
-swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift "$work/main.swift" -o "$work/mmemo" -framework AppKit -framework WebKit
+swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift apps/desktop/Updates.swift "$work/main.swift" -o "$work/mmemo" -framework AppKit -framework WebKit
 python3 - "$work" <<'PY'
 import sys,subprocess,plistlib,shutil
 from pathlib import Path

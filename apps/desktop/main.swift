@@ -59,6 +59,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     var loaded = false
     var canWrite = false
     var responding = false
+    let updates = UpdateManager()
+    var preparingTermination = false
+    var terminationPrepared = false
+    var draftRestored = false
     var responseTask: Task<Void, Never>?
     var history: [[String: String]] = []
     let store: TaskStore
@@ -76,8 +80,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let username=Bundle.main.object(forInfoDictionaryKey:"MMemoAccount") as? String
         account=CloudAccount.all.first { $0.username==username }
+        #if MMEMO_UPDATE_QA
+        store=TaskStore(directory:base.appendingPathComponent("mmemo/update-qa/\(username ?? "local")"))
+        #else
         if let account {store=TaskStore(directory:base.appendingPathComponent("mmemo/development/\(account.username)"))}
         else {store = TaskStore(directory: base.appendingPathComponent("mmemo"))}
+        #endif
         super.init()
         if let data=UserDefaults.standard.data(forKey:heartStateKey), let saved=try? JSONDecoder().decode(HeartNotificationState.self,from:data) {heartState=saved}
         else {heartState.dueSeen=UserDefaults.standard.dictionary(forKey:"readReminders") as? [String:String] ?? [:]}
@@ -95,10 +103,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         buildMenu()
+        updates.start()
+        #if !MMEMO_UPDATE_QA
         if account != nil {
             do {cloud=CloudClient(config:try CloudConfiguration.load(directory:store.directory),directory:store.directory)}
             catch {showAlert("账号配置错误",error.localizedDescription)}
         }
+        #endif
         frog = floating(NSSize(width: account?.avatar == "raccoon" ? 48 : 44, height: 88)); frog.hasShadow = false; frog.title = "mmemo · \(account?.username ?? "本机")"
         frog.acceptsKeyboard = false
         let host = NSView(frame: NSRect(origin: .zero, size: frog.frame.size))
@@ -250,7 +261,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         menu.addItem(withTitle:"展开 / 收起待办",action:#selector(toggle),keyEquivalent:"").target=self
         menu.addItem(withTitle:"打开本地数据文件夹",action:#selector(showData),keyEquivalent:"").target=self
         menu.addItem(.separator())
+        updates.addItems(to: menu)
+        menu.addItem(.separator())
         menu.addItem(withTitle:"退出 mmemo",action:#selector(quit),keyEquivalent:"q").target=self
+        updates.stateChanged = { [weak self] available in
+            self?.status.button?.title = available ? "•" : ""
+            self?.status.button?.toolTip = available ? "mmemo · 有新版本，点击菜单查看" : "mmemo"
+            self?.status.length = available ? NSStatusItem.variableLength : NSStatusItem.squareLength
+        }
         status.menu=menu
     }
     func updateBubble(_ text: String) {
@@ -300,22 +318,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame, let sender = message.webView, [web, bubbleWeb].contains(where: { $0 === sender }),
               let body=message.body as? [String:Any], let action=body["action"] as? String else { return }
-        let allowed: Set<String> = sender === bubbleWeb ? ["ready", "showLatest", "bubbleHover", "error"] : ["ready", "chat", "setDone", "stop", "inputError", "hide", "reminders", "sendHeart", "showLatest", "error"]
+        let allowed: Set<String> = sender === bubbleWeb ? ["ready", "showLatest", "bubbleHover", "error"] : ["ready", "draft", "chat", "setDone", "stop", "inputError", "hide", "reminders", "sendHeart", "showLatest", "error"]
         guard allowed.contains(action) else { return }
+        if preparingTermination && ["chat", "setDone", "sendHeart", "stop"].contains(action) { return }
         switch action {
+        case "draft":
+            do { try ComposerDraft.save(body["draft"] as Any, directory: store.directory) }
+            catch { NSLog("mmemo: draft could not be saved") }
         case "ready":
             if !readyWebs.contains(where: { $0 === sender }) { readyWebs.append(sender) }
             if sender === web { loaded=true }
             do {
                 let data=try JSONEncoder().encode(store.load())
                 let tasks=try JSONSerialization.jsonObject(with:data)
-                canWrite=account == nil || cloudReady; call("window.mmemo.load(tasks, null)",args:["tasks":tasks])
+                #if MMEMO_UPDATE_QA
+                canWrite=true
+                #else
+                canWrite=account == nil || cloudReady
+                #endif
+                call("window.mmemo.load(tasks, null)",args:["tasks":tasks])
                 let members=CloudAccount.all.map {["uid":$0.uid,"username":$0.username,"avatar":$0.avatar]}
                 call("window.mmemo.identity(account, members)",args:["account":account?.username as Any? ?? NSNull(),"members":members])
                 let name = (try? AIConfiguration.load(directory: store.directory))?.name
                 call("window.mmemo.configure(name)", args:["name": name as Any? ?? NSNull()])
                 if let latestReply { call("window.mmemo.latest(text)", args:["text":latestReply]) }
                 call("window.mmemo.status(text)", args:["text":bubblePhrase])
+                if sender === web && !draftRestored {
+                    let draft = try ComposerDraft.load(directory: store.directory)
+                    web.callAsyncJavaScript("window.mmemo.restoreDraft(draft)", arguments:["draft":draft], in:nil, in:.page) { [weak self] result in
+                        if case .success = result { self?.draftRestored = true }
+                    }
+                }
             } catch {canWrite=false;call("window.mmemo.load([], error)",args:["error":"无法读取待办，请从菜单栏检查数据文件"])}
             if cloud != nil && !loginStarted {loginStarted=true;startRealtime()}
         case "setDone":

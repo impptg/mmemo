@@ -5,6 +5,36 @@ const surface=location.hash.slice(1) || 'list';
 document.body.dataset.surface=surface;
 let currentAccount=null, members=[];
 let tasks = [], completedOpen = false, busy = false, modelName = null, latestReply = null;
+let draftReady = false;
+function snapshotDraft() {
+  const parts=[];
+  const text=value=>{if(value) {if(parts.at(-1)?.kind==='text') parts.at(-1).text+=value;else parts.push({kind:'text',text:value});}};
+  function visit(node) {
+    if(node.nodeType===Node.TEXT_NODE) {text(node.textContent);return;}
+    if(node.nodeType!==Node.ELEMENT_NODE) return;
+    if(node.classList.contains('task-token')) {parts.push({kind:'task',id:node.dataset.taskId,title:node.title});return;}
+    if(node.tagName==='BR') {text('\n');return;}
+    if(['DIV','P'].includes(node.tagName) && parts.length) text('\n');
+    for(const child of node.childNodes) visit(child);
+  }
+  for(const node of $('chatInput').childNodes) visit(node);
+  return {version:1,parts};
+}
+function persistDraft() {
+  if(surface==='list' && draftReady) native({action:'draft',draft:snapshotDraft()});
+}
+function restoreDraft(draft) {
+  const input=$('chatInput');input.replaceChildren();
+  for(const part of draft.parts) {
+    if(part.kind==='text') input.append(document.createTextNode(part.text));
+    else if(part.kind==='task') {
+      const token=document.createElement('span');token.className='task-token';token.contentEditable='false';
+      token.dataset.taskId=part.id;token.title=part.title;token.textContent=part.title;
+      token.setAttribute('aria-label',part.title);input.append(token);
+    }
+  }
+  draftReady=true;resizeComposer();
+}
 function setBusy(value) {
   busy=value;
   const button=$('sendButton');
@@ -69,6 +99,8 @@ function render() {
 }
 let statusTimer=null, statusText=null;
 window.mmemo = {
+  snapshotDraft, restoreDraft,
+  prepareToQuit() { $('chatInput').contentEditable='false'; return snapshotDraft(); },
   heartSending(value) { $('sendHeart').disabled=value; },
   identity(account, users) {
     currentAccount=account;members=users;
@@ -154,6 +186,7 @@ function resizeComposer() {
   $('chatInput').dataset.empty=String(empty);
   $('sendButton').disabled=!busy && empty;
   syncSelection();
+  persistDraft();
 }
 function composerText() {
   const copy=$('chatInput').cloneNode(true);
