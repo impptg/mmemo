@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0"><channel><title>mmemo user_pptg</title><item><title>mmemo 0.2.0</title><sparkle:version>2</sparkle:version><sparkle:shortVersionString>0.2.0</sparkle:shortVersionString><sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion><description sparkle:format="plain-text">新增菜单栏“检查更新…”和自动检查开关。
+后台发现新版本时在菜单栏提示，确认后下载、安装并重启。
+保存未发送的文字与事项引用；有 AI 请求或写入进行中时延后安装。
+两个账号分别更新，保留现有账号配置和数据目录。
+
+适用：macOS 13 或以上、Apple 芯片、现有两人账号配置。
+这是未经过 Apple 公证的内部版本，首次安装可能被 Gatekeeper 阻止。请仅从本仓库下载，并按 macOS“隐私与安全性”中的逐应用允许流程处理；无需关闭系统整体安全保护。
+从不支持更新的旧版升级，需要先手动安装一次本版本。
+</description><enclosure url="https://github.com/impptg/mmemo/releases/download/v0.2.0/mmemo-user_pptg-0.2.0-arm64.zip" length="5215340" type="application/octet-stream" sparkle:edSignature="sbMiIwiIeWf5vojn+pVIxYswMFqpBUA0JkMJf1nZDzLw1J53g2XE8DoGcUkcpOSEXKtN/ELXD5b7K+HvU64KBg=="></enclosure></item></channel></rss><!-- sparkle-signatures:
+edSignature: imzra1MIMn83f5fZvhQ3VdLWKoJTmUDg5V+G6lWi48Q+b+vS6x8JUB297HJjy6cvZ9H+aRkxTxxUMAYRJ+X8CQ==
+length: 1650
+-->
