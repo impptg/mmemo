@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>mmemo 待办清单</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="model.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<section class="panel" aria-label="待办清单">
+  <header>
+    <div class="heading"><h1 id="recentHeading" class="group-heading" hidden></h1><h1 id="panelTitle" hidden></h1></div>
+    <div class="tools">
+      <img id="brandLogo" src="mmemo-logo.png" alt="mmemo" width="54" height="16">
+      <!-- Remix Icon: message-3-line / todo-line / heart-line (Remix-Design/RemixIcon). -->
+      <button id="latestMessage" class="icon-button" disabled aria-label="最新消息" data-view="todo" title="最新消息"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="message-line" d="M2 8.99374C2 5.68349 4.67654 3 8.00066 3H15.9993C19.3134 3 22 5.69478 22 8.99374V21H8.00066C4.68659 21 2 18.3052 2 15.0063V8.99374ZM20 19V8.99374C20 6.79539 18.2049 5 15.9993 5H8.00066C5.78458 5 4 6.78458 4 8.99374V15.0063C4 17.2046 5.79512 19 8.00066 19H20ZM14 11H16V13H14V11ZM8 11H10V13H8V11Z"/><path class="todo-line" d="M17 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2H7V0H9V2H15V0H17V2ZM17 4V6H15V4H9V6H7V4H5V20H19V4H17ZM7 8H17V10H7V8ZM7 12H17V14H7V12Z"/></svg></button>
+      <button id="sendHeart" class="icon-button" aria-label="给对方发送爱心" title="给对方发送爱心"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.001 4.52853C14.35 2.42 17.98 2.49 20.2426 4.75736C22.5053 7.02472 22.583 10.637 20.4786 12.993L11.9999 21.485L3.52138 12.993C1.41705 10.637 1.49571 7.01901 3.75736 4.75736C6.02157 2.49315 9.64519 2.41687 12.001 4.52853ZM18.827 6.1701C17.3279 4.66794 14.9076 4.60701 13.337 6.01687L12.0019 7.21524L10.6661 6.01781C9.09098 4.60597 6.67506 4.66808 5.17157 6.17157C3.68183 7.66131 3.60704 10.0473 4.97993 11.6232L11.9999 18.6543L19.0201 11.6232C20.3935 10.0467 20.319 7.66525 18.827 6.1701Z"/></svg></button>
+    </div>
+  </header>
+  <div id="accountStatus" class="sr-only" role="status" hidden></div>
+  <main id="list" aria-label="待办事项"></main>
+  <section id="detail" aria-label="完整 Agent 消息" hidden><div class="message-meta">mmemo · 最新回复</div><div id="detailText"></div></section>
+  <form id="chatForm" autocomplete="off">
+    <div id="chatInput" contenteditable="true" role="textbox" aria-multiline="true" aria-label="告诉 AI 你想安排或调整的事" data-placeholder="说说要记什么，或想怎么调整…"></div>
+    <button type="submit" id="sendButton" aria-label="发送给 AI" title="发送 · Enter"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="send-icon" d="m5 12 7-7 7 7M12 19V5"/><rect class="stop-icon" x="5" y="5" width="14" height="14" rx="2"/></svg></button>
+  </form>
+</section>
+<button id="replyBubble" aria-label="查看最新 Agent 消息全文"><span id="bubbleText"></span></button>
+</body>
+</html>

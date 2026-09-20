@@ -1,0 +1,25 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = 'desktop/web/model.js';
+assert.ok(fs.existsSync(path), '任务模型应存在');
+const context = vm.createContext({});
+vm.runInContext(fs.readFileSync(path, 'utf8') + '\nthis.model = Model;', context);
+const { validate, dueLabel } = context.model;
+const task = {id:'abc', title:'周会 PPT', due:'2026-09-18T10:00', done:false};
+assert.equal(validate([task])[0].title, '周会 PPT');
+assert.throws(() => validate([{...task, title:'  '}]), /标题/);
+assert.throws(() => validate([{...task, title:'x'.repeat(201)}]), /标题/);
+assert.throws(() => validate([{...task, done:'false'}]), /状态/);
+assert.throws(() => validate([{...task, due:'tomorrow'}]), /日期/);
+assert.throws(() => validate([{...task, due:'2026-02-31T10:00'}]), /日期/);
+assert.throws(() => validate([task, task]), /重复/);
+assert.throws(() => validate({}), /格式/);
+assert.equal(dueLabel('2026-09-18T10:00', new Date(2026,8,17)), '明天 10:00');
+assert.equal(dueLabel('2026-09-17T14:00', new Date(2026,8,17)), '14:00');
+assert.equal(dueLabel('', new Date(2026,8,17)), '');
+assert.equal(validate([{...task, title:'<img src=x onerror=alert(1)>'}])[0].title, '<img src=x onerror=alert(1)>');
+console.log('PASS: validation, duplicate IDs, calendar dates, relative labels, literal text');
+
+assert.equal(validate([{...task,participants:['a','b']}])[0].participants.join(','),'a,b');
+for(const participants of [[],['a','a'],['a','b','c'],[null],'a']) assert.throws(()=>validate([{...task,participants}]),/参与人/);

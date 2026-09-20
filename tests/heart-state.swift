@@ -1,0 +1,35 @@
+import Foundation
+@main struct HeartStateCheck {
+    static func main() throws {
+        let now=Date(timeIntervalSince1970:1_800_000_000)
+        var state=HeartNotificationState()
+        assert(state.level(at:now)==0)
+        state.receive(["a"],at:now)
+        assert(state.level(at:now)==1)
+        assert(state.level(at:now.addingTimeInterval(119))==1)
+        assert(state.level(at:now.addingTimeInterval(120))==2)
+        state.receive(["a","b"],at:now.addingTimeInterval(120))
+        assert(state.level(at:now.addingTimeInterval(120))==3)
+        assert(state.level(at:now.addingTimeInterval(100000))==10)
+        state=try JSONDecoder().decode(HeartNotificationState.self,from:JSONEncoder().encode(state))
+        assert(state.level(at:now.addingTimeInterval(120))==3)
+        state.viewed()
+        state.receive(["a","b"],at:now)
+        assert(state.level(at:now)==0,"ack retry cannot revive a viewed notification")
+        let format=DateFormatter();format.locale=Locale(identifier:"en_US_POSIX");format.dateFormat="yyyy-MM-dd'T'HH:mm"
+        let task=Todo(id:"due",title:"due",due:format.string(from:now),done:false)
+        state.refresh([task],at:now)
+        assert(state.level(at:now)==1)
+        state.refresh([task],at:now)
+        assert(state.level(at:now)==1,"polling must not boost the same due task")
+        state.receive(["c","d"],at:now)
+        assert(state.level(at:now)==3,"heart boosts and due notifications share a level")
+        state.viewed();state.refresh([task],at:now)
+        assert(state.level(at:now)==0,"viewing clears without completing task")
+        state.refresh([],at:now);state.refresh([task],at:now)
+        assert(state.level(at:now)==1,"a newly overdue task triggers again")
+        state.receive((0..<20).map {"burst-\($0)"},at:now)
+        assert(state.level(at:now)==10)
+        print("PASS: escalation, manual boosts, deduplication, persistence, due trigger, viewed reset, cap")
+    }
+}

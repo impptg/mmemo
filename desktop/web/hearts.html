@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>爱心提醒</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;pointer-events:none}
+.heart{position:absolute;bottom:8px;right:22px;width:var(--size);height:var(--size);opacity:0;animation:float 4s ease-out forwards}
+@keyframes float{0%{opacity:0;transform:translate(0,0) scale(.55) rotate(-12deg)}15%{opacity:.9}65%{opacity:.8}100%{opacity:0;transform:translate(var(--drift),-100px) scale(1) rotate(14deg)}}
+@media(prefers-reduced-motion:reduce){.heart{animation:none;opacity:.85;transform:none}}
+</style><body><script src="hearts.js"></script></body></html>

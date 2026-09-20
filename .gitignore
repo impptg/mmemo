@@ -1,0 +1,13 @@
+dist/
+.DS_Store
+node_modules/
+.env
+.env.*
+!.env.example
+.cloudbase/
+*.zip
+.secrets/
+artifacts/private/
+*.pem
+*.key
+*.log

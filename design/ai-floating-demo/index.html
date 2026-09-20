@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>mmemo · 分离式 AI 对话</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="wallpaper" aria-hidden="true"></div>
+<div class="desktop-label"><span class="brand">mmemo<span class="dot"></span></span><span>交互草图 / 02</span></div>
+<aside class="guide">
+  <span class="eyebrow">一点空间，留给小事</span>
+  <h1>清单归清单。<br>对话，轻轻出现。</h1>
+  <p>下方独立输入，青蛙旁收到回复。<br>想看更多时，再打开整条消息。</p>
+  <div class="steps"><button id="demoReply">试试收到回复 <span>↗</span></button><button id="reset">重置演示</button></div>
+  <div class="demo-note">可交互 Demo · 示例待办 / 模拟回复<br>可点击青蛙收起、展开待办</div>
+</aside>
+<div class="widget">
+  <section class="todo-panel glass" aria-label="待办面板">
+    <header><div class="heading"><h2 id="panelTitle">待办</h2><span id="count">4</span></div><div class="tools"><button id="back" hidden title="返回待办" aria-label="返回待办">←</button><button id="close" title="收起待办" aria-label="收起待办">×</button></div></header>
+    <main id="list">
+      <article class="todo"><span class="checkbox"></span><span class="task-title">把周会 PPT 整理一下</span><span class="avatar">🐥</span><time>14:00</time></article>
+      <article class="todo"><span class="checkbox"></span><span class="task-title">和 mm 确认设计稿</span><span class="avatar peach">🦝</span><time>16:00</time></article>
+      <article class="todo"><span class="checkbox"></span><span class="task-title">记得给绿植浇水</span><span class="avatar green">🐸</span><time>明天</time></article>
+      <article class="todo"><span class="checkbox"></span><span class="task-title">周末一起逛超市</span><span class="avatar lilac">🐱</span><time>周六</time></article>
+      <article class="todo completed"><span class="checkbox">✓</span><span class="task-title">完成接口联调</span><span class="avatar green">🐸</span><time>今天</time></article>
+    </main>
+    <section id="detail" hidden aria-label="完整消息"><div class="message-meta"><span class="ai-mark">✧</span><span>mmemo</span><time id="messageTime">刚刚</time></div><div class="question"><span>你说</span><p id="detailQuestion"></p></div><div id="detailReply"></div></section>
+  </section>
+  <form id="composer" class="glass" autocomplete="off"><label class="sr-only" for="input">与 AI 对话</label><textarea id="input" rows="1" placeholder="说说要记什么，或想怎么调整…" maxlength="2000"></textarea><button id="send" title="发送 · Enter" aria-label="发送" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="arrow" d="m5 12 7-7 7 7M12 19V5"/><rect class="square" x="5" y="5" width="14" height="14" rx="2"/></svg></button></form>
+</div>
+<div class="frog-anchor">
+  <button id="bubble" class="glass" hidden aria-label="查看完整 AI 回复"><span id="bubbleText"></span><span class="bubble-corner" aria-hidden="true">↗</span></button>
+  <button id="frog" aria-label="展开或收起待办" aria-expanded="true"><img src="../assets/pp-edge-assistant-blink.apng" alt="青蛙"></button>
+</div>
+<div class="bottom-note">消息气泡最多三行 · 点击查看全文</div>
+<script src="app.js"></script>
+</body></html>
