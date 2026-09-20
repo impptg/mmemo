@@ -13,3 +13,12 @@ artifacts/private/
 *.log
 __pycache__/
 *.pyc
+
+# Desktop account credentials and server bootstrap input (never publish).
+server.json
+server-session.json
+ai.json
+cloud.json
+session.json
+bootstrap.json
+cloudbase-development-users.json

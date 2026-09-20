@@ -2,6 +2,10 @@
 
 原生 macOS 双人待办。Swift/AppKit/WebKit 桌面端、TypeScript/Fastify 后端和 PostgreSQL 位于同一个 pnpm monorepo。
 
+## 让 Agent 帮你配置
+
+参见 [Agent 一句话配置指南](AGENT_SETUP.md)：把文档中的一句话交给 Agent，即可按本机私有配置完成账号、密码、模型设置、验证和启动。支持单账号安装；真实密码和 API Key 不进入仓库。
+
 ## 目录
 
 - `apps/desktop`：桌面应用与 WebKit 界面。
