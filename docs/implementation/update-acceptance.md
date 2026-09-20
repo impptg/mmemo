@@ -31,4 +31,18 @@
 
 本地私有验收目录：artifacts/private/update-qa/，包含 upgrade-results.json、签名清单、两个版本的实际应用与归档。私有目录不上传 GitHub。
 
-发布与线上检查结果在完成发布后补充。
+## 发布与线上验证
+
+- 源码提交：cd0cb2bcb11bfeb6c5f92ed6f646407c547ae960，已合入 main；标签 v0.2.0 对应同一提交。
+- GitHub Desktop checks 成功：https://github.com/impptg/mmemo/actions/runs/35527493399 。
+- Release 已公开：https://github.com/impptg/mmemo/releases/tag/v0.2.0 。
+- 两个账号 arm64 ZIP 均匿名下载成功，下载字节的 SHA-256 与构建清单相同。
+- Pages 状态 built，HTTPS 强制开启，来源 gh-pages 分支；两个线上 XML 均通过签名验证，且与发布产物逐字节相同。
+- user_pptg ZIP SHA-256：d60c65d2c012c013dd3fae53b195e83ee5ba9fa7cd520ff66ffd932fee2fed3a。
+- user_mm ZIP SHA-256：51d951d8011de17bbe9505f66ee9aa729690464e22aa86fb97219b1910412a3c。
+- 发布包的 Bundle ID、账号、构建号 2、arm64 架构均核对通过，不含 QA 命令入口。
+- 最终回调实现的双账号 2→3 重启与草稿验证记录在 final-upgrade-results.json；正常退出与草稿一致性记录在 shutdown-results.json。测试应用和本地 HTTP 服务已关闭。
+
+## 后续用户侧验收
+
+另一台 Mac 尚未操作。本期交付是两个账号包、线上更新源、可重复发布脚本和本机双账号真实升级证据；首次安装仍需在各自机器手动进行，并确认系统是否要求逐应用允许运行。日常旧版未被本次测试覆盖。
