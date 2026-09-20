@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup mmemo PostgreSQL
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/opt/mmemo/current/deploy/backup.sh

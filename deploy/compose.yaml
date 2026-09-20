@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      POSTGRES_USER: mmemo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: mmemo
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=20", "-c", "work_mem=2MB"]
+    volumes: ["postgres:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmemo"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    logging:
+      options: {max-size: "5m", max-file: "3"}
+  server:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      DATABASE_URL: postgres://mmemo:${POSTGRES_PASSWORD}@db:5432/mmemo
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      HOST: 0.0.0.0
+    ports: ["127.0.0.1:8787:8787"]
+    depends_on:
+      db: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      options: {max-size: "5m", max-file: "3"}
+volumes:
+  postgres:

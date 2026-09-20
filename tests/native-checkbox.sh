@@ -5,7 +5,7 @@ work=$(mktemp -d /tmp/mmemo-checkbox.XXXXXX)
 trap 'rm -rf "$work"' EXIT
 python3 - "$work/main.swift" <<'PY'
 import sys
-source=open('desktop/main.swift').read().split('let app=NSApplication.shared')[0]
+source=open('apps/desktop/main.swift').read().split('let app=NSApplication.shared')[0]
 source=source.replace('let resources = Bundle.main.resourceURL!.absoluteURL', 'let resources = URL(fileURLWithPath: CommandLine.arguments[1])')
 
 source=source.replace('store = TaskStore(directory: base.appendingPathComponent("mmemo"))', 'store = TaskStore(directory: URL(fileURLWithPath: CommandLine.arguments[2]))')
@@ -59,5 +59,5 @@ Timer.scheduledTimer(withTimeInterval:0.1,repeats:true) { timer in
 app.run()
 ''')
 PY
-swiftc desktop/Store.swift desktop/AI.swift desktop/Cloud.swift "$work/main.swift" -o "$work/mmemo-checkbox-check" -framework AppKit -framework WebKit
+swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift "$work/main.swift" -o "$work/mmemo-checkbox-check" -framework AppKit -framework WebKit
 "$work/mmemo-checkbox-check" "$PWD/dist/mmemo.app/Contents/Resources" "$work/data"

@@ -1,0 +1,32 @@
+[
+  {
+    "check": "Both real apps loaded identical migrated snapshot",
+    "count": 9
+  },
+  {
+    "check": "user_pptg -> user_mm: create/update/delete, native checkbox, two avatars, draft preservation",
+    "latencyMs": 341
+  },
+  {
+    "check": "user_mm -> user_pptg: create/update/delete, native checkbox, two avatars, draft preservation",
+    "latencyMs": 349
+  },
+  {
+    "check": "user_pptg -> user_mm: native heart button delivered once"
+  },
+  {
+    "check": "user_mm -> user_pptg: native heart button delivered once"
+  },
+  {
+    "check": "Disconnected receiver catches up todo and durable heart; wake handler reconnect does not duplicate"
+  },
+  {
+    "check": "App process restart preserves session and reloads state"
+  },
+  {
+    "check": "Real AI native composer creates shared todo; second real app receives it"
+  },
+  {
+    "check": "All QA todos removed; original migrated data unchanged"
+  }
+]

@@ -4,7 +4,7 @@ final class Check: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
 var web: WKWebView!
 let window=NSWindow(contentRect:NSRect(x:400,y:400,width:256,height:62),styleMask:.borderless,backing:.buffered,defer:false)
 func userContentController(_ controller:WKUserContentController,didReceive message:WKScriptMessage){}
-func start(){let c=WKWebViewConfiguration();c.userContentController.add(self,name:"mmemo");web=WKWebView(frame:window.contentView!.bounds,configuration:c);web.navigationDelegate=self;window.contentView=web;window.orderFrontRegardless();let root=URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent("desktop/web");web.loadFileURL(URL(string:root.appendingPathComponent("index.html").absoluteString+"#bubble")!,allowingReadAccessTo:root)}
+func start(){let c=WKWebViewConfiguration();c.userContentController.add(self,name:"mmemo");web=WKWebView(frame:window.contentView!.bounds,configuration:c);web.navigationDelegate=self;window.contentView=web;window.orderFrontRegardless();let root=URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent("apps/desktop/web");web.loadFileURL(URL(string:root.appendingPathComponent("index.html").absoluteString+"#bubble")!,allowingReadAccessTo:root)}
 func webView(_ webView:WKWebView,didFinish navigation:WKNavigation!){web.callAsyncJavaScript("""
 window.mmemo.status('正在冥思苦想 ...');
 const d=document.querySelector('.status-dots');const values=[];

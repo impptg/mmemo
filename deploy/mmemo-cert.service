@@ -1,0 +1,6 @@
+[Unit]
+Description=Renew mmemo IP HTTPS certificate and reload proxy
+After=docker.service mmemo-acme-web.service
+[Service]
+Type=oneshot
+ExecStart=/opt/mmemo/current/deploy/renew-certificate.sh

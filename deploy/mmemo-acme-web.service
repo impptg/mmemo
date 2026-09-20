@@ -1,0 +1,9 @@
+[Unit]
+Description=mmemo IP certificate challenge files
+After=network.target
+[Service]
+WorkingDirectory=/opt/mmemo/acme
+ExecStart=/usr/bin/python3 -m http.server 8788 --bind 127.0.0.1
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target

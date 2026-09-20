@@ -66,8 +66,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     var cloud: CloudClient?
     var syncing = false
     var cloudGeneration = 0
-    var nextSync = Date.distantPast
-    var syncDelay: TimeInterval = 3
+    var syncPending = false
+    var syncRetry: Task<Void,Never>?
     var cloudReady = false
     var loginStarted = false
     let resources = Bundle.main.resourceURL!.absoluteURL
@@ -135,12 +135,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             if event.window !== self.frog && event.window !== self.panel && event.window !== self.bubblePanel { self.hide() }
             return event
         }) { monitors.append(monitor) }
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector:#selector(systemWoke(_:)),name:NSWorkspace.didWakeNotification,object:nil)
         NotificationCenter.default.addObserver(self, selector: #selector(screenChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
             guard let self, self.loaded else { return }
             self.refreshReminders()
-            if self.cloud != nil {self.syncCloud()}
-            else {self.web.evaluateJavaScript("window.mmemo.opened()", completionHandler: nil)}
+            if self.cloud == nil {self.web.evaluateJavaScript("window.mmemo.opened()", completionHandler: nil)}
         }
     }
 
@@ -317,7 +317,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
                 if let latestReply { call("window.mmemo.latest(text)", args:["text":latestReply]) }
                 call("window.mmemo.status(text)", args:["text":bubblePhrase])
             } catch {canWrite=false;call("window.mmemo.load([], error)",args:["error":"无法读取待办，请从菜单栏检查数据文件"])}
-            if cloud != nil && !loginStarted {loginStarted=true;syncCloud(force:true)}
+            if cloud != nil && !loginStarted {loginStarted=true;startRealtime()}
         case "setDone":
             guard sender === web, canWrite, !responding,
                   let id = body["id"] as? String, !id.isEmpty, id.count <= 100,
@@ -412,19 +412,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         default: break
         }
     }
+    func startRealtime() {
+        cloud?.watch(onChange:{ [weak self] in self?.syncCloud(force:true) },onDisconnect:{ [weak self] in
+            guard let self else {return}
+            self.canWrite=false
+            self.call("window.mmemo.connection(text)",args:["text":"离线 · 正在重连"])
+        })
+    }
+    @objc func systemWoke(_ notification:Notification) {startRealtime()}
     func syncCloud(force: Bool = false) {
-        guard cloud != nil, !syncing, !responding, force || Date()>=nextSync else {return}
+        guard cloud != nil else {return}
+        syncPending=true
+        guard !syncing,!responding else {return}
+        syncRetry?.cancel();syncRetry=nil
         syncing=true
         Task { @MainActor in
-            defer {self.syncing=false;self.nextSync=Date().addingTimeInterval(self.syncDelay)}
+            defer {self.syncing=false}
             do {
-                try await self.refreshCloud();self.syncDelay=3
-                do {try await self.receiveHearts()} catch {NSLog("mmemo heart receive unavailable")}
+                while self.syncPending && !self.responding {
+                    self.syncPending=false
+                    try await self.refreshCloud()
+                    try await self.receiveHearts()
+                }
             } catch {
-                self.syncDelay=min(self.syncDelay*2,30)
                 self.canWrite=false
-                self.call("window.mmemo.connection(text)",args:["text":"离线 · 稍后重试"])
-                NSLog("mmemo %@ sync unavailable",self.account?.username ?? "local")
+                self.call("window.mmemo.connection(text)",args:["text":"离线 · 正在重连"])
+                // Retry only a failed synchronization; no periodic reads while idle.
+                self.syncRetry=Task { @MainActor in
+                    try? await Task.sleep(nanoseconds:5_000_000_000)
+                    if !Task.isCancelled {self.syncCloud(force:true)}
+                }
             }
         }
     }
@@ -442,11 +459,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     }
     @MainActor func receiveHearts() async throws {
         guard heartsReady, let cloud else {return}
-        let ids=try await cloud.fetchHearts()
-        guard !ids.isEmpty else {return}
-        heartState.receive(ids)
-        renderHearts()
-        try await cloud.ackHearts(ids)
+        while true {
+            let ids=try await cloud.fetchHearts()
+            guard !ids.isEmpty else {return}
+            heartState.receive(ids)
+            renderHearts()
+            try await cloud.ackHearts(ids)
+            if ids.count<100 {return}
+        }
     }
     func cloudFailure(_ error: Error) {
         latestReply=error.localizedDescription
@@ -466,7 +486,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         heartsWeb.callAsyncJavaScript("window.hearts.update(level)", arguments:["level":heartState.level()], in:nil, in:.page, completionHandler:nil)
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        if webView === heartsWeb { heartsReady = true; refreshReminders() }
+        if webView === heartsWeb { heartsReady = true; refreshReminders(); if cloudReady {syncCloud(force:true)} }
     }
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         var url = navigationAction.request.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }

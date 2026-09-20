@@ -9,7 +9,7 @@ final class SurfaceCheck: NSObject, WKNavigationDelegate, WKScriptMessageHandler
         if let body=message.body as? [String:Any], body["action"] as? String == "showLatest" { opened=true }
     }
     func start() {
-        let root=URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent("desktop/web")
+        let root=URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent("apps/desktop/web")
         let logo=NSBitmapImageRep(data:try! Data(contentsOf:root.appendingPathComponent("mmemo-logo.png")))!
         assert(logo.colorAt(x:0,y:0)!.alphaComponent==0,"logo background must have zero alpha")
         assert(logo.colorAt(x:Int(Double(logo.pixelsWide)*40/625),y:Int(Double(logo.pixelsHigh)*150/185))!.alphaComponent>0.95,"lettering stays opaque")

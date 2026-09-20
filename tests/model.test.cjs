@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const path = 'desktop/web/model.js';
+const path = 'apps/desktop/web/model.js';
 assert.ok(fs.existsSync(path), '任务模型应存在');
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(path, 'utf8') + '\nthis.model = Model;', context);

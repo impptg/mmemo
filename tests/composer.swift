@@ -19,7 +19,7 @@ final class ComposerCheck: NSObject, WKNavigationDelegate, WKScriptMessageHandle
         web = WKWebView(frame: window.contentView!.bounds, configuration: config)
         window.contentView = web; web.navigationDelegate = self
         window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
-        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("desktop/web")
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("apps/desktop/web")
         var url = URLComponents(url: root.appendingPathComponent("index.html"), resolvingAgainstBaseURL: false)!
         url.fragment = "list"
         web.loadFileURL(url.url!, allowingReadAccessTo: root)

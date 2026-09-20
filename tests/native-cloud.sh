@@ -6,7 +6,7 @@ trap 'rm -rf "$work"' EXIT
 python3 - "$work/main.swift" <<'PY'
 import sys
 from pathlib import Path
-source=Path('desktop/main.swift').read_text().split('let app=NSApplication.shared')[0]
+source=Path('apps/desktop/main.swift').read_text().split('let app=NSApplication.shared')[0]
 source=source.replace('let resources = Bundle.main.resourceURL!.absoluteURL','let resources = URL(fileURLWithPath: CommandLine.arguments[1])')
 source=source.replace('let username=Bundle.main.object(forInfoDictionaryKey:"MMemoAccount") as? String','let username=CommandLine.arguments[2]')
 Path(sys.argv[1]).write_text(source+r'''
@@ -26,7 +26,7 @@ Timer.scheduledTimer(withTimeInterval:0.1,repeats:true) { timer in
    let id="native-sync-"+UUID().uuidString
    do {
      try await peer.apply([["action":"create","id":id,"patch":["title":"真实双端勾选验证","due":"","done":false,"participants":CloudAccount.all.map(\.uid)]]])
-     // Exercise the application's scheduled polling, not a direct UI load.
+     // Exercise the application's SSE subscription, not a direct UI load.
      for _ in 0..<80 {
        if (try? delegate.store.load().contains(where:{$0.id==id}))==true {break}
        try await Task.sleep(nanoseconds:100_000_000)
@@ -51,7 +51,7 @@ Timer.scheduledTimer(withTimeInterval:0.1,repeats:true) { timer in
      assert(draft=="保留草稿")
      try await peer.apply([["action":"delete","id":id]])
      try await delegate.refreshCloud()
-     print("PASS:",username,"native login, scheduled sync, two participant avatars, either member checkbox cloud write, draft preserved, cleanup")
+     print("PASS:",username,"native login, SSE sync, two participant avatars, either member checkbox cloud write, draft preserved, cleanup")
      exit(0)
    } catch {
      try? await peer.apply([["action":"delete","id":id]])
@@ -62,6 +62,6 @@ Timer.scheduledTimer(withTimeInterval:0.1,repeats:true) { timer in
 app.run()
 ''')
 PY
-swiftc desktop/Store.swift desktop/AI.swift desktop/Cloud.swift "$work/main.swift" -o "$work/native-cloud" -framework AppKit -framework WebKit
+swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift "$work/main.swift" -o "$work/native-cloud" -framework AppKit -framework WebKit
 "$work/native-cloud" "$PWD/dist/mmemo.app/Contents/Resources" user_pptg
 "$work/native-cloud" "$PWD/dist/mmemo.app/Contents/Resources" user_mm

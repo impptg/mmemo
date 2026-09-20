@@ -6,7 +6,7 @@ trap 'rm -rf "$work"' EXIT
 python3 - "$work/main.swift" <<'PY'
 import sys, uuid
 from pathlib import Path
-source=Path('desktop/main.swift').read_text().split('let app=NSApplication.shared')[0]
+source=Path('apps/desktop/main.swift').read_text().split('let app=NSApplication.shared')[0]
 source=source.replace('"heartNotifications."', '"heartNotifications.test.'+uuid.uuid4().hex+'."')
 source=source.replace('let resources = Bundle.main.resourceURL!.absoluteURL','let resources = URL(fileURLWithPath: CommandLine.arguments[1])')
 source=source.replace('let username=Bundle.main.object(forInfoDictionaryKey:"MMemoAccount") as? String','let username=CommandLine.arguments[2]')
@@ -83,6 +83,6 @@ Timer.scheduledTimer(withTimeInterval:0.1,repeats:true) { timer in
 app.run()
 ''')
 PY
-swiftc desktop/Store.swift desktop/AI.swift desktop/Cloud.swift "$work/main.swift" -o "$work/native-cloud" -framework AppKit -framework WebKit
+swiftc apps/desktop/Store.swift apps/desktop/AI.swift apps/desktop/Cloud.swift "$work/main.swift" -o "$work/native-cloud" -framework AppKit -framework WebKit
 "$work/native-cloud" "$PWD/dist/mmemo.app/Contents/Resources" user_pptg
 "$work/native-cloud" "$PWD/dist/mmemo.app/Contents/Resources" user_mm

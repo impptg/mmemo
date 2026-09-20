@@ -1,0 +1,32 @@
+[
+  {
+    "check": "mmemo-server-1 restart: both subscriptions and subsequent writes recovered"
+  },
+  {
+    "check": "mmemo-db-1 restart: both subscriptions and subsequent writes recovered"
+  },
+  {
+    "check": "Expired server access tokens: both apps reauthenticated and resubscribed"
+  },
+  {
+    "check": "Two live apps idle 35 seconds: no todo/heart reads; 2 SSE subscriptions",
+    "before": {
+      "todoReads": 14,
+      "heartReads": 14,
+      "mutations": 4,
+      "connections": 6,
+      "notifications": 4,
+      "subscribers": 2,
+      "listenerReady": true
+    },
+    "after": {
+      "todoReads": 14,
+      "heartReads": 14,
+      "mutations": 4,
+      "connections": 6,
+      "notifications": 4,
+      "subscribers": 2,
+      "listenerReady": true
+    }
+  }
+]
