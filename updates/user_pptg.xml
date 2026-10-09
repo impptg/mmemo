@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0"><channel><title>mmemo user_pptg</title><item><title>mmemo 0.3.0</title><sparkle:version>3</sparkle:version><sparkle:shortVersionString>0.3.0</sparkle:shortVersionString><sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion><description sparkle:format="plain-text">新增双人留言画板：在悬浮窗口点击画板按钮，打开长期保存的无限画布。
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0"><channel><title>mmemo user_pptg</title><item><title>mmemo 0.3.1</title><sparkle:version>4</sparkle:version><sparkle:shortVersionString>0.3.1</sparkle:shortVersionString><sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion><description sparkle:format="plain-text">新增双人留言画板：在悬浮窗口点击画板按钮，打开长期保存的无限画布。
 
 支持实时共画、对方光标、画笔、图形、中文文字、图片和撤销重做。双方独立移动和缩放视野，关闭后保留窗口与内容。对方的新留言显示红点，可跳到最近修改。断网时自动保留本地修改，恢复连接后补同步。
 
-本次更新同时完善长连接关闭和退出保存，避免服务重启或安装更新时丢失未同步的画板内容。
-</description><enclosure url="https://github.com/impptg/mmemo/releases/download/v0.3.0/mmemo-user_pptg-0.3.0-arm64.zip" length="21274566" type="application/octet-stream" sparkle:edSignature="vXIl/jG+b/Uu8TVj9CxVjA6QhFRIf9m40CClGJ7hpIdLrYsmP2tukBNaEfewZB2eo8/+pYZ7ZKnSlQN41hxuDA=="></enclosure></item></channel></rss><!-- sparkle-signatures:
-edSignature: S+KQPPWCawGdSOl1tScUZCqBp6PP/JINO9nVwmIAi3abRnAk0I7qQoQ4xpuHeaCakc6nXxYcKaun0TMzl6/rDg==
-length: 1481
+修复画板关闭或从未打开时，退出保存可能等待画面刷新而无法完成的问题；保留未发送草稿和离线画板队列。
+</description><enclosure url="https://github.com/impptg/mmemo/releases/download/v0.3.1/mmemo-user_pptg-0.3.1-arm64.zip" length="21274582" type="application/octet-stream" sparkle:edSignature="N7DEnONaRRiXm8A0oleay9yPdIc4lZUDdWGrz9yOz0yyTE7TvMprDoXMFEVk8LWCnesjQb+TW/nSwiwiwlaNBg=="></enclosure></item></channel></rss><!-- sparkle-signatures:
+edSignature: kdvVhkCGciptFz/k1E1kPL28BKcRDncNFg8uDhfKp5CeHaUDLmtbz1dHAOaSOZMWukyKWcatllWRCG6C7LnXDQ==
+length: 1502
 -->
