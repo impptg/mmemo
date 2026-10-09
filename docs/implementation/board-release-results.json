@@ -1,0 +1,81 @@
+{
+  "release": {
+    "status": "passed",
+    "verifiedAt": "2026-10-09T05:27:22Z",
+    "release": "https://github.com/impptg/mmemo/releases/tag/v0.3.0",
+    "sourceCommit": "315136c3da968da0d6cd0157fc278bed2088e50f",
+    "ci": "https://github.com/impptg/mmemo/actions/runs/37887808397",
+    "ciConclusion": "success",
+    "pagesStatus": "built",
+    "accounts": [
+      {
+        "account": "user_pptg",
+        "publicFeed": "https://impptg.github.io/mmemo/updates/user_pptg.xml",
+        "version": "0.3.0",
+        "build": 3,
+        "feedSignatureValid": true,
+        "archiveSignatureValid": true,
+        "anonymousDownloadSHA256": "2de1d35c0f3cfa60096665f9be10dfd5750f5825cfd00223ec67ac316df0fc66"
+      },
+      {
+        "account": "user_mm",
+        "publicFeed": "https://impptg.github.io/mmemo/updates/user_mm.xml",
+        "version": "0.3.0",
+        "build": 3,
+        "feedSignatureValid": true,
+        "archiveSignatureValid": true,
+        "anonymousDownloadSHA256": "4e471e06ac62ea504b3121f74e15f06ce40e16415e60e7290ace97f7b5287c74"
+      }
+    ]
+  },
+  "production": {
+    "status": "passed",
+    "time": "2026-10-09T05:24:57.034Z",
+    "endpoint": "https://59.110.153.116",
+    "health": 200,
+    "unauthenticated": 401,
+    "authenticatedHTTPS": true,
+    "authenticatedWSS": true,
+    "bidirectionalPointers": true,
+    "revision": 0,
+    "elements": 0,
+    "productionContentWritten": false
+  },
+  "isolatedSparkleUpgrade": {
+    "status": "passed",
+    "accounts": [
+      {
+        "account": "user_pptg",
+        "from": "0.2.1 QA build 3",
+        "to": "0.3.0 QA build 4",
+        "installedViaSparkleGUI": true,
+        "relaunchReady": true,
+        "draftAndReferencePreserved": true,
+        "boardCanonicalAndImagesPreserved": true,
+        "productionProfileUsed": false,
+        "businessNetworkDisabled": true
+      },
+      {
+        "account": "user_mm",
+        "from": "0.2.1 QA build 3",
+        "to": "0.3.0 QA build 4",
+        "installedViaSparkleGUI": true,
+        "relaunchReady": true,
+        "draftAndReferencePreserved": true,
+        "boardCanonicalAndImagesPreserved": true,
+        "productionProfileUsed": false,
+        "businessNetworkDisabled": true
+      }
+    ]
+  },
+  "database": {
+    "migrations": [
+      "001_initial.sql",
+      "002_board.sql"
+    ],
+    "todosBefore": 21,
+    "todosAfter": 21,
+    "restoreVerified": true
+  },
+  "dailyAppReplaced": false
+}
