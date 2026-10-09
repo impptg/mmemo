@@ -35,6 +35,11 @@ def draw(actor,tool,points):
 try:
  startBackend()
  for name in q.NAMES:q.start(name);q.wait(name,lambda s:s['board'].get('online'))
+ # A preloaded WebKit board has never been visible, so animation frames can stop.
+ assert not q.state(b)['visible']
+ q.command(b,'quit');q.processes[b].wait(timeout=15)
+ q.start(b);q.wait(b,lambda s:s['board'].get('online'))
+ record('画板从未打开时，正常退出完成保存并结束进程')
  q.command(a,'show')
  # The exact entry button, rather than the direct open test command.
  q.command(a,'listJS',script="document.getElementById('openBoard').click();true")
@@ -137,6 +142,14 @@ try:
  q.start(a);q.wait(a,lambda s:s['board'].get('online') and s['board']['pending']==0)
  q.wait(b,lambda s:any(e.get('text')==quittingText for e in s['board']['elements']))
  record('正常退出会完成未结束的文字输入并落盘，重启后补同步')
+ q.command(a,'disconnect');q.command(a,'open')
+ hiddenPending=draw(a,'rectangle',[[410,220],[440,260],[490,300],[490,300]])
+ q.wait(a,lambda s:s['board']['pending']>0)
+ q.command(a,'close');assert not q.state(a)['visible']
+ q.command(a,'quit');q.processes[a].wait(timeout=15)
+ q.start(a);q.wait(a,lambda s:s['board'].get('online') and s['board']['pending']==0)
+ q.wait(b,lambda s:visible(s,hiddenPending))
+ record('画板关闭且离线队列未同步时，正常退出不挂起；重启补同步')
  success=True
 except Exception:
  for name in q.NAMES:

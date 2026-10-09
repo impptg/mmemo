@@ -83,7 +83,16 @@ window.mmemoBoard={
   accept(state,message);applyRemote();persist();notify();read();scheduleSend();
  },
  flush(){persist();return {pending:state.pending.length,sequence,state:copy(state)};},
- async prepareToQuit(){(document.activeElement as HTMLElement)?.blur();await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));persist();return copy(state);},
+ async prepareToQuit(){
+  (document.activeElement as HTMLElement)?.blur();
+  // Hidden WKWebViews can suspend animation frames indefinitely. Let text blur
+  // settle, but always finish saving when the board is closed or never opened.
+  await new Promise<void>(resolve=>{
+   const timer=setTimeout(resolve,100);
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{clearTimeout(timer);resolve();}));
+  });
+  persist();return copy(state);
+ },
  retry(){error='';persist();native({action:'boardReconnect'});renderUI();},
  get api(){return api;},
  inspect(){return {initialized,online,visible,pending:state?.pending.length??0,inFlight,revision:state?.revision,unread:initialized&&unread(),viewport:state?.viewport,latest:state?.latest,error,elements:api?.getSceneElementsIncludingDeleted(),files:api?.getFiles(),collaborators:[...collaborators.keys()]};}
