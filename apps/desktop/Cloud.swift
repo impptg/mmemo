@@ -9,7 +9,12 @@ struct CloudConfiguration: Codable {
     var account: CloudAccount? { CloudAccount.all.first { $0.uid == uid && $0.username == username } }
     static func load(directory: URL) throws -> Self {
         let config=try JSONDecoder().decode(Self.self,from:Data(contentsOf:directory.appendingPathComponent("server.json")))
-        guard URL(string:config.baseURL)?.scheme == "https", config.account != nil, !config.password.isEmpty, UUID(uuidString:config.deviceId) != nil else { throw AIError("云端账号配置不正确") }
+        #if MMEMO_BOARD_QA
+        let validScheme=URL(string:config.baseURL)?.scheme == "https" || URL(string:config.baseURL)?.host == "127.0.0.1"
+        #else
+        let validScheme=URL(string:config.baseURL)?.scheme == "https"
+        #endif
+        guard validScheme, config.account != nil, !config.password.isEmpty, UUID(uuidString:config.deviceId) != nil else { throw AIError("云端账号配置不正确") }
         return config
     }
 }
@@ -39,6 +44,8 @@ private struct CloudRow: Decodable {
     let directory: URL
     private let network: URLSession
     private let streaming: URLSession
+    private var boardTask: Task<Void,Never>?
+    private var boardSocket: URLSessionWebSocketTask?
     private var watchTask: Task<Void,Never>?
     private var session: CloudSession?
     private var authentication: Task<CloudToken,Error>?
@@ -160,6 +167,44 @@ private struct CloudRow: Decodable {
                 onDisconnect()
                 try? await Task.sleep(nanoseconds:delay*1_000_000_000)
                 delay=min(delay*2,30)
+            }
+        }
+    }
+    func stopBoardWatching() {boardTask?.cancel();boardTask=nil;boardSocket?.cancel(with:.goingAway,reason:nil);boardSocket=nil}
+    func sendBoard(_ message:[String:Any]) async throws {
+        guard let socket=boardSocket else {throw AIError("画板离线")}
+        let data=try JSONSerialization.data(withJSONObject:message)
+        guard data.count<=12*1024*1024,let text=String(data:data,encoding:.utf8) else {throw AIError("画板更新过大")}
+        try await socket.send(.string(text))
+    }
+    func watchBoard(onMessage:@escaping @MainActor ([String:Any])->Void,onConnection:@escaping @MainActor (Bool)->Void) {
+        stopBoardWatching()
+        boardTask=Task { [weak self] in
+            guard let self else {return};var delay:UInt64=1
+            while !Task.isCancelled {
+                onConnection(false)
+                do {
+                    let token=try await self.accessToken()
+                    try Task.checkCancellation()
+                    var url=URLComponents(string:self.base+"/v1/board/socket")!
+                    url.scheme=url.scheme=="https" ? "wss" : "ws"
+                    var request=URLRequest(url:url.url!);request.setValue("Bearer \(token)",forHTTPHeaderField:"Authorization")
+                    let socket=self.streaming.webSocketTask(with:request);socket.maximumMessageSize=80*1024*1024
+                    self.boardSocket=socket;socket.resume()
+                    while !Task.isCancelled {
+                        let received=try await socket.receive();let data:Data
+                        switch received {case .string(let value):data=Data(value.utf8);case .data(let value):data=value;@unknown default:continue}
+                        try Task.checkCancellation()
+                        guard let message=try JSONSerialization.jsonObject(with:data) as? [String:Any] else {continue}
+                        delay=1;onMessage(message)
+                    }
+                } catch {
+                    if Task.isCancelled {return}
+                    if self.boardSocket?.closeCode.rawValue==4001 || (self.boardSocket?.response as? HTTPURLResponse)?.statusCode==401 {self.session=nil}
+                }
+                self.boardSocket?.cancel(with:.goingAway,reason:nil);self.boardSocket=nil
+                onConnection(false)
+                try? await Task.sleep(nanoseconds:delay*1_000_000_000);delay=min(delay*2,30)
             }
         }
     }

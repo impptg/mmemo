@@ -99,6 +99,7 @@ function render() {
 }
 let statusTimer=null, statusText=null;
 window.mmemo = {
+  boardUnread(value) { $('openBoard').querySelector('.board-dot').hidden=!value; $('openBoard').title=value?'留言画板 · 对方有新修改':'留言画板'; },
   snapshotDraft, restoreDraft,
   prepareToQuit() { $('chatInput').contentEditable='false'; return snapshotDraft(); },
   heartSending(value) { $('sendHeart').disabled=value; },
@@ -258,6 +259,7 @@ $('chatInput').addEventListener('keydown', e => {
   if(!busy && e.key==='Enter' && e.shiftKey && !e.isComposing) {e.preventDefault();document.execCommand('insertLineBreak');return;}
   if(!busy && e.key==='Enter' && !e.shiftKey && !e.isComposing && e.keyCode!==229) {e.preventDefault();$('chatForm').requestSubmit();}
 });
+$('openBoard').onclick=()=>native({action:'showBoard'});
 $('sendHeart').onclick=()=>native({action:'sendHeart'});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.isComposing)native({action:'hide'});});
 window.addEventListener('error',e=>{native({action:'error',message:e.message});});

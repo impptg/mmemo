@@ -6,10 +6,37 @@ on:
 permissions:
   contents: read
 jobs:
+  server:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: mmemo
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: mmemo_board_qa
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U mmemo" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      BOARD_QA_DATABASE_URL: postgres://mmemo:ci-only-password@127.0.0.1:5432/mmemo_board_qa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable && pnpm install --frozen-lockfile
+      - run: pnpm build && pnpm check
+      - run: python3 tests/provision-board-qa.py
+      - run: python3 tests/board-service-checks.py
   desktop:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install workspace dependencies
+        run: corepack enable && pnpm install --frozen-lockfile
       - name: Build Apple silicon development app
         run: ./run.sh --build
       - name: Test draft persistence
@@ -17,6 +44,6 @@ jobs:
           swiftc apps/desktop/Store.swift tests/draft.swift -o /tmp/mmemo-draft-tests
           /tmp/mmemo-draft-tests
       - name: Test existing client models
-        run: node --test tests/model.test.cjs tests/hearts.test.cjs
+        run: node --test tests/model.test.cjs tests/hearts.test.cjs tests/board-client.test.mjs
       - name: Validate release scripts
         run: python3 -m py_compile scripts/build-desktop.py scripts/fetch-sparkle.py scripts/github-api.py scripts/release-desktop.py

@@ -54,7 +54,7 @@ def prepare(notes, key):
         info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
         if info['MMemoAccount'] != account or not info['MMemoUpdatesEnabled']:
             raise RuntimeError('Wrong account/update configuration')
-        forbidden = {'server.json', 'ai.json', 'server-session.json', 'session.json', 'todos.json', 'composer-draft.json'}
+        forbidden = {'server.json', 'ai.json', 'server-session.json', 'session.json', 'todos.json', 'composer-draft.json', 'board-state.json'}
         if any(p.name in forbidden or p.suffix in {'.key', '.p12', '.p8', '.pem'} for p in app.rglob('*')):
             raise RuntimeError('Private file found in app bundle')
         archive = out / name

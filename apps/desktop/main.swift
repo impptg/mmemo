@@ -39,6 +39,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     var web: WKWebView!
     var bubblePanel: FloatingPanel!
     var bubbleWeb: WKWebView!
+    var boardPanel: FloatingPanel!
+    var boardWeb: WKWebView!
+    var boardReady = false
+    var boardUnread = false
     var readyWebs: [WKWebView] = []
     var latestReply: String?
     var bubbleTimer: Timer?
@@ -80,7 +84,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let username=Bundle.main.object(forInfoDictionaryKey:"MMemoAccount") as? String
         account=CloudAccount.all.first { $0.username==username }
-        #if MMEMO_UPDATE_QA
+        #if MMEMO_BOARD_QA
+        store=TaskStore(directory:URL(fileURLWithPath:ProcessInfo.processInfo.environment["MMEMO_BOARD_QA_ACCOUNTS"]!).appendingPathComponent(username ?? "local"))
+        #elseif MMEMO_UPDATE_QA
         store=TaskStore(directory:base.appendingPathComponent("mmemo/update-qa/\(username ?? "local")"))
         #else
         if let account {store=TaskStore(directory:base.appendingPathComponent("mmemo/development/\(account.username)"))}
@@ -138,12 +144,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         frog.addChildWindow(heartsPanel, ordered: .above)
         (panel, web) = makeSurface("list", size: NSSize(width: 392, height: 410), title: "mmemo 待办清单")
         (bubblePanel, bubbleWeb) = makeSurface("bubble", size: NSSize(width: 260, height: 64), title: "mmemo 最新回复")
+        makeBoard()
         dock(afterDrag: false); frog.orderFrontRegardless()
         if CommandLine.arguments.contains("--show") { if account != nil {showPanels()} else {reveal()} }
         if let monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown], handler: { [weak self] _ in self?.hide() }) { monitors.append(monitor) }
         if let monitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown], handler: { [weak self] event in
             guard let self else { return event }
-            if event.window !== self.frog && event.window !== self.panel && event.window !== self.bubblePanel { self.hide() }
+            if event.window !== self.frog && event.window !== self.panel && event.window !== self.bubblePanel && event.window !== self.boardPanel { self.hide() }
             return event
         }) { monitors.append(monitor) }
         NSWorkspace.shared.notificationCenter.addObserver(self, selector:#selector(systemWoke(_:)),name:NSWorkspace.didWakeNotification,object:nil)
@@ -259,6 +266,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         let menu=NSMenu()
         if let account {menu.addItem(withTitle:account.username,action:nil,keyEquivalent:"")}
         menu.addItem(withTitle:"展开 / 收起待办",action:#selector(toggle),keyEquivalent:"").target=self
+        menu.addItem(withTitle:"打开留言画板",action:#selector(showBoard),keyEquivalent:"").target=self
         menu.addItem(withTitle:"打开本地数据文件夹",action:#selector(showData),keyEquivalent:"").target=self
         menu.addItem(.separator())
         updates.addItems(to: menu)
@@ -316,9 +324,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         }
     }
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.frameInfo.isMainFrame, message.webView === boardWeb, let body=message.body as? [String:Any] {handleBoard(body);return}
         guard message.frameInfo.isMainFrame, let sender = message.webView, [web, bubbleWeb].contains(where: { $0 === sender }),
               let body=message.body as? [String:Any], let action=body["action"] as? String else { return }
-        let allowed: Set<String> = sender === bubbleWeb ? ["ready", "showLatest", "bubbleHover", "error"] : ["ready", "draft", "chat", "setDone", "stop", "inputError", "hide", "reminders", "sendHeart", "showLatest", "error"]
+        let allowed: Set<String> = sender === bubbleWeb ? ["ready", "showLatest", "bubbleHover", "error"] : ["ready", "draft", "chat", "setDone", "stop", "inputError", "hide", "reminders", "sendHeart", "showLatest", "showBoard", "error"]
         guard allowed.contains(action) else { return }
         if preparingTermination && ["chat", "setDone", "sendHeart", "stop"].contains(action) { return }
         switch action {
@@ -350,6 +359,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
                     }
                 }
             } catch {canWrite=false;call("window.mmemo.load([], error)",args:["error":"无法读取待办，请从菜单栏检查数据文件"])}
+            call("window.mmemo.boardUnread(value)",args:["value":boardUnread])
             if cloud != nil && !loginStarted {loginStarted=true;startRealtime()}
         case "setDone":
             guard sender === web, canWrite, !responding,
@@ -439,6 +449,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
                 do {try await cloud.sendHeart();self.finishBubble("爱心已发送")}
                 catch {self.showAlert("爱心发送未确认", "请稍后再试；对方可能已经收到。")}
             }
+        case "showBoard": showBoard()
         case "hide": hide()
         case "reminders": refreshReminders()
         case "error": NSLog("mmemo JS: %@",body["message"] as? String ?? "unknown")
@@ -452,7 +463,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             self.call("window.mmemo.connection(text)",args:["text":"离线 · 正在重连"])
         })
     }
-    @objc func systemWoke(_ notification:Notification) {startRealtime()}
+    @objc func systemWoke(_ notification:Notification) {startRealtime();startBoardRealtime()}
     func syncCloud(force: Bool = false) {
         guard cloud != nil else {return}
         syncPending=true
@@ -524,7 +535,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         var url = navigationAction.request.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
         url?.fragment = nil
-        let allowed = url?.url?.standardizedFileURL == resources.appendingPathComponent(webView === heartsWeb ? "web/hearts.html" : "web/index.html").standardizedFileURL
+        let allowed = url?.url?.standardizedFileURL == resources.appendingPathComponent(webView === boardWeb ? "web/board/index.html" : (webView === heartsWeb ? "web/hearts.html" : "web/index.html")).standardizedFileURL
         decisionHandler(allowed ? .allow : .cancel)
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {false}

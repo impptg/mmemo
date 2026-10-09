@@ -1,4 +1,6 @@
 import Fastify from 'fastify';
+import websocket from '@fastify/websocket';
+import { registerBoard } from './board.js';
 import rateLimit from '@fastify/rate-limit';
 import { createHash } from 'node:crypto';
 import { changesSchema,loginSchema,refreshSchema,ackSchema } from '@mmemo/contracts';
@@ -9,6 +11,8 @@ import type { PoolClient } from 'pg';
 const error=(statusCode:number,message:string)=>Object.assign(new Error(message),{statusCode});
 export async function buildApp() {
  const app=Fastify({logger:{level:process.env.LOG_LEVEL??'info',redact:['req.headers.authorization','req.headers.cookie']},bodyLimit:65536,trustProxy:'127.0.0.1'});
+ await app.register(websocket,{options:{maxPayload:12*1024*1024}});
+ await registerBoard(app);
  const realtime=new Realtime();
  const metrics={todoReads:0,heartReads:0,mutations:0};
  await app.register(rateLimit,{max:240,timeWindow:'1 minute'});
@@ -103,7 +107,9 @@ export async function buildApp() {
   if(req.headers['x-mmemo-admin']!==process.env.ADMIN_TOKEN||!process.env.ADMIN_TOKEN)return reply.code(403).send({error:'Forbidden'});
   return {...metrics,...realtime.counters,subscribers:realtime.count,listenerReady:realtime.ready};
  });
- app.addHook('onClose',async()=>{await realtime.stop();await pool.end();});
+ // End long-lived SSE responses before HTTP shutdown waits for open requests.
+ app.addHook('preClose',async()=>{await realtime.stop();});
+ app.addHook('onClose',async()=>{await pool.end();});
  await realtime.start();
  return app;
 }

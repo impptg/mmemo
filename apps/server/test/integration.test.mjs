@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 const base=process.env.TEST_BASE_URL??'http://127.0.0.1:8787';
-const config=JSON.parse(await readFile(new URL('../../../.secrets/bootstrap.json',import.meta.url),'utf8').catch(()=>readFile(new URL('../../../../.secrets/bootstrap.json',import.meta.url),'utf8')));
+const config=JSON.parse(await readFile(process.env.BOOTSTRAP_CONFIG??new URL('../../../.secrets/bootstrap.json',import.meta.url),'utf8').catch(()=>readFile(new URL('../../../../.secrets/bootstrap.json',import.meta.url),'utf8')));
 async function request(path,token,body,key=randomUUID()){
  const response=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),'Idempotency-Key':key},body:body===undefined?undefined:JSON.stringify(body)});
  return {status:response.status,data:await response.json()};

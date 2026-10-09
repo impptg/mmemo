@@ -55,3 +55,7 @@ DATABASE_URL=postgres://mmemo:local-testing-only@127.0.0.1:55432/mmemo ADMIN_TOK
 参见 [运维说明](docs/implementation/operations.md)、[验收记录](docs/implementation/acceptance.md)。生产入口使用 IP HTTPS；具体部署参数保存在本地私有配置与服务器 `/opt/mmemo/server.env`。
 
 AI 的 DeepSeek 强制工具调用沿用 `thinking: disabled`，避免模型协议冲突；此次迁移不改变模型配置语义。
+
+## 双人留言画板
+
+悬浮窗口中的画板按钮打开独立无限画布，支持实时共画、图片、对方光标、未读提醒和断网补同步。实现、部署与本机双 App 验证见 [画板说明](docs/implementation/board.md)。

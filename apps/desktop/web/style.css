@@ -33,3 +33,5 @@ body:not([data-surface="list"]) #chatForm,body:not([data-surface="list"]) .panel
 
 .group-toggle{display:flex;align-items:center;gap:4px;padding:0;background:transparent;font:inherit;color:inherit;line-height:inherit}.group-toggle[aria-expanded="true"] .group-chevron{transform:rotate(90deg)}
 
+
+#openBoard{position:relative}.board-dot{position:absolute;right:2px;top:2px;width:5px;height:5px;border-radius:50%;background:#df5b55;pointer-events:none}

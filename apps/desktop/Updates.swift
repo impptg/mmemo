@@ -102,8 +102,23 @@ extension AppDelegate {
             do {
                 if let error { throw error }
                 try ComposerDraft.save(value as Any, directory: store.directory)
-                terminationPrepared = true
-                sender.reply(toApplicationShouldTerminate: true)
+                if boardReady {
+                    boardWeb.callAsyncJavaScript("return await window.mmemoBoard.prepareToQuit()",arguments:[:],in:nil,in:.page){ [self] result in
+                        do {
+                            let value=try result.get()
+                            guard let state=value as? [String:Any] else {throw AIError("画板尚未保存")}
+                            try saveBoardState(state)
+                            terminationPrepared=true;sender.reply(toApplicationShouldTerminate:true)
+                        } catch {
+                            preparingTermination=false
+                            showAlert("画板尚未保存","请重试退出；当前修改仍保留在窗口中。")
+                            sender.reply(toApplicationShouldTerminate:false)
+                        }
+                    }
+                } else {
+                    terminationPrepared = true
+                    sender.reply(toApplicationShouldTerminate: true)
+                }
             } catch {
                 preparingTermination = false
                 web.evaluateJavaScript("window.mmemo.stopped()", completionHandler: nil)

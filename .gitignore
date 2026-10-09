@@ -25,3 +25,6 @@ cloud.json
 session.json
 bootstrap.json
 cloudbase-development-users.json
+
+# Generated, bundled Excalidraw assets.
+apps/desktop/web/board/

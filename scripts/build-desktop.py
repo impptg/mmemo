@@ -14,8 +14,9 @@ sparkle = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sparkle)
 
 
-def build(output, account=None, release=False, version=None, number=None, main=None, qa=False, feed_base=None):
+def build(output, account=None, release=False, version=None, number=None, main=None, qa=False, feed_base=None, board_qa=False):
     config = json.loads((ROOT / 'config/release.json').read_text())
+    subprocess.run(["pnpm", "--filter", "@mmemo/board", "build"], cwd=ROOT, check=True)
     framework = sparkle.fetch()
     output = Path(output).resolve()
     if output.suffix != '.app' or ROOT not in output.parents:
@@ -34,12 +35,15 @@ def build(output, account=None, release=False, version=None, number=None, main=N
         shutil.copy2(ROOT / 'design/assets' / name, resources / 'web/assets' / name)
     subprocess.run(['swift', str(ROOT / 'apps/desktop/icons.swift'), str(resources / 'web/icons')], check=True)
     subprocess.run(['ditto', str(framework / 'Sparkle.framework'), str(contents / 'Frameworks/Sparkle.framework')], check=True)
-    sources = [str(ROOT / 'apps/desktop' / name) for name in ['Store.swift', 'AI.swift', 'Cloud.swift', 'Updates.swift']]
+    sources = [str(ROOT / 'apps/desktop' / name) for name in ['Store.swift', 'AI.swift', 'Cloud.swift', 'Board.swift', 'Updates.swift']]
     sources.append(str(main or ROOT / 'apps/desktop/main.swift'))
-    subprocess.run(['swiftc', '-O', '-target', 'arm64-apple-macos13.0', *(['-D', 'MMEMO_UPDATE_QA'] if qa else []), *sources,
+    subprocess.run(['swiftc', '-O', '-target', 'arm64-apple-macos13.0', *(['-D', 'MMEMO_UPDATE_QA'] if qa else []), *(['-D','MMEMO_BOARD_QA'] if board_qa else []), *sources,
                     '-o', str(contents / 'MacOS/mmemo'), '-F', str(framework), '-framework', 'Sparkle',
                     '-framework', 'AppKit', '-framework', 'WebKit', '-Xlinker', '-rpath', '-Xlinker', '@executable_path/../Frameworks'], check=True)
     bundle = 'local.mmemo.desktop' + ('.' + account.replace('_', '-') if account else '')
+    if board_qa:
+        if release: raise ValueError('Board QA cannot be released')
+        bundle = 'local.mmemo.board-qa.' + (account or 'local').replace('_', '-')
     if qa:
         bundle = 'local.mmemo.update-qa.' + (account or 'local').replace('_', '-')
     info = dict(CFBundleExecutable='mmemo', CFBundleIdentifier=bundle, CFBundleName='mmemo' + (' ' + account if account else ''),
@@ -55,7 +59,7 @@ def build(output, account=None, release=False, version=None, number=None, main=N
         if not account:
             raise ValueError('Release requires an explicit account variant')
         info['SUFeedURL'] = (feed_base or config['feedBaseURL']).rstrip('/') + '/' + account + '.xml'
-    if qa:
+    if qa or board_qa:
         info['SUEnableAutomaticChecks'] = False
         info['NSAppTransportSecurity'] = {'NSAllowsLocalNetworking': True}
     (contents / 'Info.plist').write_bytes(plistlib.dumps(info))
