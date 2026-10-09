@@ -15,6 +15,7 @@
 - 断网修改落盘，强制退出后重启补同步；后端真实停止再启动后，内容、图片和停机期间修改保留。
 - 双方空闲时版本稳定，没有反复保存或排序抖动。
 - 正常退出会完成未结束的文字输入并保存，重启后同步给对方。
+- 画板从未打开，或关闭且有离线队列时，正常退出均能结束进程，重启后补同步。
 
 自动图片验收通过原生文件选择回调提供固定 PNG；另一次使用实际 NSOpenPanel，通过系统“前往”定位 PNG 并点击“打开”，验证放置和对方接收。该次结果及截图留在 `artifacts/private/board-qa/native-picker-result.json` 与 `board-native-picker.png`。
 
@@ -24,10 +25,10 @@
 
 ## 发布状态与边界
 
-0.3.0（构建 3）已发布：[正式版本](https://github.com/impptg/mmemo/releases/tag/v0.3.0)，源码提交 `315136c3da968da0d6cd0157fc278bed2088e50f`。[CI](https://github.com/impptg/mmemo/actions/runs/37887808397) 的桌面与后端任务均通过。
+0.3.1（构建 4）已发布：[正式版本](https://github.com/impptg/mmemo/releases/tag/v0.3.1)，源码提交 `1f3e30c794f436fec31e4e4b19883718a6e649fa`。[CI](https://github.com/impptg/mmemo/actions/runs/37888950081) 的桌面与后端任务均通过。该版修复隐藏 WebKit 不触发动画帧时，退出保存可能挂起的问题。
 
 生产 ECS 已完成数据库备份、后端部署、`002_board.sql` 迁移和 Nginx WebSocket 转发更新。健康检查正常，部署前后原有 21 条待办一致；新备份恢复到临时数据库后，待办行数及内容摘要一致。两个正式账号的 HTTPS 快照和 WSS 双向光标通过，未认证访问返回 401。线上验证没有创建测试画板内容。
 
-两个账号的公开更新源已指向构建 3，GitHub Pages 为 built；匿名下载与发布清单 SHA-256 一致，更新源及 ZIP 的 Ed25519 签名有效。两个隔离的旧版真实 App 均通过 Sparkle 界面检测、下载、安装及重启到当前代码版本，结构化草稿、任务引用、待办和画板元素/图片完整保留。详情及边界见 [发布验证](board-release-verification.md)。
+两个账号的公开更新源已指向构建 4，GitHub Pages 为 built；匿名下载与发布清单 SHA-256 一致，更新源及 ZIP 的 Ed25519 签名有效。两个隔离的旧版真实 App 均通过 Sparkle 界面检测、下载、安装及重启到当前代码版本，结构化草稿、任务引用、待办和画板元素/图片完整保留；更新后画板从未打开时也能正常退出。详情及边界见 [发布验证](board-release-verification.md)。
 
-第二台物理 Mac 未参与本机双 App 验收。日常运行的本机 0.1.0 未被替换；该版本没有 Sparkle，需要退出旧版后换用对应账号的 0.3.0 App。
+第二台物理 Mac 未参与本机双 App 验收。日常运行的本机 0.1.0 未被替换；该版本没有 Sparkle，需要退出旧版后换用对应账号的 0.3.1 App。

@@ -1,36 +1,36 @@
 {
   "release": {
     "status": "passed",
-    "verifiedAt": "2026-10-09T05:27:22Z",
-    "release": "https://github.com/impptg/mmemo/releases/tag/v0.3.0",
-    "sourceCommit": "315136c3da968da0d6cd0157fc278bed2088e50f",
-    "ci": "https://github.com/impptg/mmemo/actions/runs/37887808397",
+    "verifiedAt": "2026-10-09T05:35:18Z",
+    "release": "https://github.com/impptg/mmemo/releases/tag/v0.3.1",
+    "sourceCommit": "1f3e30c794f436fec31e4e4b19883718a6e649fa",
+    "ci": "https://github.com/impptg/mmemo/actions/runs/37888950081",
     "ciConclusion": "success",
     "pagesStatus": "built",
     "accounts": [
       {
         "account": "user_pptg",
         "publicFeed": "https://impptg.github.io/mmemo/updates/user_pptg.xml",
-        "version": "0.3.0",
-        "build": 3,
+        "version": "0.3.1",
+        "build": 4,
         "feedSignatureValid": true,
         "archiveSignatureValid": true,
-        "anonymousDownloadSHA256": "2de1d35c0f3cfa60096665f9be10dfd5750f5825cfd00223ec67ac316df0fc66"
+        "anonymousDownloadSHA256": "7bbe514ee767b75e2026fcff6304c269a99fa4fc70806e6fe00de00b58c68b44"
       },
       {
         "account": "user_mm",
         "publicFeed": "https://impptg.github.io/mmemo/updates/user_mm.xml",
-        "version": "0.3.0",
-        "build": 3,
+        "version": "0.3.1",
+        "build": 4,
         "feedSignatureValid": true,
         "archiveSignatureValid": true,
-        "anonymousDownloadSHA256": "4e471e06ac62ea504b3121f74e15f06ce40e16415e60e7290ace97f7b5287c74"
+        "anonymousDownloadSHA256": "de08eca849e64fe6312781ba74b03ab4d144cd12e4b69466d042855fc109a272"
       }
     ]
   },
   "production": {
     "status": "passed",
-    "time": "2026-10-09T05:24:57.034Z",
+    "time": "2026-10-09T05:33:45.274Z",
     "endpoint": "https://59.110.153.116",
     "health": 200,
     "unauthenticated": 401,
@@ -41,28 +41,32 @@
     "elements": 0,
     "productionContentWritten": false
   },
+  "deployedBackendCommit": "315136c3da968da0d6cd0157fc278bed2088e50f",
+  "backendSourceUnchangedIn031": true,
   "isolatedSparkleUpgrade": {
     "status": "passed",
     "accounts": [
       {
         "account": "user_pptg",
         "from": "0.2.1 QA build 3",
-        "to": "0.3.0 QA build 4",
+        "to": "0.3.1 QA build 5",
         "installedViaSparkleGUI": true,
         "relaunchReady": true,
-        "draftAndReferencePreserved": true,
+        "exactDraftAndTodosPreserved": true,
         "boardCanonicalAndImagesPreserved": true,
+        "normalQuitWithHiddenBoardPassed": true,
         "productionProfileUsed": false,
         "businessNetworkDisabled": true
       },
       {
         "account": "user_mm",
         "from": "0.2.1 QA build 3",
-        "to": "0.3.0 QA build 4",
+        "to": "0.3.1 QA build 5",
         "installedViaSparkleGUI": true,
         "relaunchReady": true,
-        "draftAndReferencePreserved": true,
+        "exactDraftAndTodosPreserved": true,
         "boardCanonicalAndImagesPreserved": true,
+        "normalQuitWithHiddenBoardPassed": true,
         "productionProfileUsed": false,
         "businessNetworkDisabled": true
       }
@@ -77,5 +81,6 @@
     "todosAfter": 21,
     "restoreVerified": true
   },
-  "dailyAppReplaced": false
+  "dailyAppReplaced": false,
+  "supersededRelease": "https://github.com/impptg/mmemo/releases/tag/v0.3.0"
 }
